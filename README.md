@@ -1,20 +1,51 @@
-# terraform-aws-machine
+<h1 align="center">
+  <a href="https://captf.io/"><img
+    src="https://captf.io/assets/readme/mark.svg"
+    width="72" height="72" alt="CAPTF"></a>
+  <br>
+  terraform-aws-machine
+</h1>
 
-The CAPTF AWS machine module: the Terraform/OpenTofu root module behind `TerraformMachine`. The images are published from [aws-modules](https://github.com/captf-io/aws-modules) as `ghcr.io/captf-io/aws-machine`; this repository holds the module code only.
+<p align="center">The CAPTF machine module for Amazon Web Services</p>
 
-The `machine` role for AWS: one EC2 instance per Machine, control plane or
-worker. It implements the `v1alpha1`
-[machine role](https://captf.io/docs/module-author/contract/v1alpha1/machine.html)
-and ships as `ghcr.io/captf-io/aws-machine`. Everything cluster-wide (subnets,
-security groups, instance profiles, the API target groups, the bootstrap
-bucket) comes from the cluster's exports.
+<p align="center">
+  <a href="https://github.com/captf-io/terraform-aws-machine/actions/workflows/ci.yml"><img
+    src="https://img.shields.io/github/actions/workflow/status/captf-io/terraform-aws-machine/ci.yml?branch=main&amp;label=build&amp;labelColor=161B3A&amp;style=flat-square"
+    alt="build"></a>
+  <a href="https://captf.io/docs/module-author/contract/index.html"><img
+    src="https://img.shields.io/static/v1?label=contract&amp;message=v1alpha1&amp;color=A974FF&amp;labelColor=161B3A&amp;style=flat-square"
+    alt="contract v1alpha1"></a>
+  <a href="https://captf.io/docs/"><img
+    src="https://img.shields.io/static/v1?label=docs&amp;message=captf.io&amp;color=5B8CFF&amp;labelColor=161B3A&amp;style=flat-square"
+    alt="docs captf.io"></a>
+  <a href="https://github.com/captf-io/terraform-aws-machine/blob/main/LICENSE.md"><img
+    src="https://img.shields.io/static/v1?label=license&amp;message=Apache-2.0&amp;color=FFD84D&amp;labelColor=161B3A&amp;style=flat-square"
+    alt="license Apache-2.0"></a>
+</p>
 
-## Usage
+> [!NOTE]
+> **Pre-release.** CAPTF is `v1alpha1`: its API and its
+> [module contract](https://captf.io/docs/module-author/contract/index.html)
+> may still change between releases.
 
-CAPTF runs this module from the module image `ghcr.io/captf-io/aws-machine`: set the image on
-a `TerraformMachine`'s `spec.source.image` (through a `TerraformMachineTemplate`), and the controller renders every
-input. The module is also published to the Terraform Registry as
-`captf-io/machine/aws` and can be called directly:
+The CAPTF AWS machine module is the Terraform/OpenTofu root module behind
+`TerraformMachine`. It is the `machine` role for AWS: one EC2 instance per
+Machine, control plane or worker. It implements the `v1alpha1`
+[machine role](https://captf.io/docs/module-author/contract/v1alpha1/machine.html).
+The images are built from
+[aws-modules](https://github.com/captf-io/aws-modules) and published as
+`ghcr.io/captf-io/aws-machine`; this repository holds the module code only.
+
+Everything cluster-wide (subnets, security groups, instance profiles, the API
+target groups, the bootstrap bucket) comes from the cluster's exports.
+
+## Using it
+
+CAPTF runs this module from the module image `ghcr.io/captf-io/aws-machine`: set
+the image on a `TerraformMachine`'s `spec.source.image` (through a
+`TerraformMachineTemplate`), and the controller renders every input. The module
+is also published to the Terraform Registry as `captf-io/machine/aws` and can be
+called directly:
 
 ```hcl
 module "machine" {
@@ -224,7 +255,7 @@ spec:
         instance_type: m6i.large
 ```
 
-## Development
+## Developing
 
 The host needs `make`, `podman` (or `docker` with `ENGINE=docker`), `jq` and
 Go; every other tool runs in a digest-pinned container. `make verify` is the
@@ -248,3 +279,29 @@ gate. `tfcapi-lint` is built from `../cluster-api-provider-terraform`
 | `make clean` | Remove `build/`. |
 
 `RUNTIMES=opentofu` limits a run to one runtime.
+
+<br>
+<p align="center">
+  <img
+    src="https://captf.io/assets/readme/divider.svg"
+    width="100%" height="4" alt="">
+</p>
+<p align="center">
+  <a href="https://captf.io/"><img
+    src="https://captf.io/assets/readme/mark.svg"
+    width="40" height="40" alt="CAPTF"></a>
+  <br>
+  <a href="https://captf.io/docs/"
+    ><b>Documentation</b></a> ·
+  <a href="https://captf.io/docs/getting-started/quick-start.html"
+    ><b>Quick start</b></a> ·
+  <a href="https://github.com/captf-io/.github/blob/main/CONTRIBUTING.md"
+    ><b>Contributing</b></a> ·
+  <a href="https://github.com/captf-io/.github/blob/main/SECURITY.md"
+    ><b>Security</b></a>
+  <br>
+  <sub>Built for
+    <a href="https://cluster-api.sigs.k8s.io/">Cluster API</a>.
+    <a href="https://github.com/captf-io/terraform-aws-machine/blob/main/LICENSE.md"
+    >Apache 2.0</a>.</sub>
+</p>
