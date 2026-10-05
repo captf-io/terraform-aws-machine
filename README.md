@@ -9,6 +9,34 @@ and ships as `ghcr.io/captf-io/aws-machine`. Everything cluster-wide (subnets,
 security groups, instance profiles, the API target groups, the bootstrap
 bucket) comes from the cluster's exports.
 
+## Usage
+
+CAPTF runs this module from the module image `ghcr.io/captf-io/aws-machine`: set the image on
+a `TerraformMachine`'s `spec.source.image` (through a `TerraformMachineTemplate`), and the controller renders every
+input. The module is also published to the Terraform Registry as
+`captf-io/machine/aws` and can be called directly:
+
+```hcl
+module "machine" {
+  source  = "captf-io/machine/aws"
+  version = "~> 0.1"
+
+  # The contract inputs the controller would render (captf_contract,
+  # captf_cluster, captf_object, captf_tags, ...; see Inputs), and any
+  # user variables.
+}
+```
+
+Called directly, the module is a CAPTF root module first:
+
+- it configures its own `provider "aws"` block, so the calling
+  module cannot use `count`, `for_each` or `depends_on` on it, and the
+  provider takes its credentials from the environment (see Identity
+  Secret);
+- its providers are pinned to exact versions (`versions.tf`), which the
+  calling configuration has to accept;
+- you set the `captf_*` inputs yourself.
+
 ## What it creates
 
 | Resource | Count | Purpose |
@@ -40,7 +68,7 @@ It reads `data.aws_ami_ids.node_images` when `machine_image.id` is not set.
   `ec2:CreateTags`, `ec2:Describe*`, `iam:PassRole` on the node roles,
   `elasticloadbalancing:RegisterTargets` and `DeregisterTargets`, and
   `s3:PutObject`, `s3:GetObject*` and `s3:DeleteObject` on the bootstrap
-  bucket: see [`examples/identity-policy.json`](examples/identity-policy.json).
+  bucket: see [`examples/identity-policy.json`](https://github.com/captf-io/terraform-aws-machine/blob/main/examples/identity-policy.json).
 
 ## Inputs
 
@@ -179,7 +207,7 @@ None: `tfcapi-lint module --strict` passes without allowed warnings.
 
 ## Examples
 
-[`examples/cluster-kubeadm.yaml`](examples/cluster-kubeadm.yaml) uses
+[`examples/cluster-kubeadm.yaml`](https://github.com/captf-io/terraform-aws-machine/blob/main/examples/cluster-kubeadm.yaml) uses
 this image for the control plane and a MachineDeployment:
 
 ```yaml
