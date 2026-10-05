@@ -1,0 +1,61 @@
+#cloud-boothook
+#!/bin/sh
+# CAPTF bootstrap fetch (aws-machine). cloud-init runs boothooks on every
+# boot, in its init stage, before it reads its configuration for the module
+# stages. Once per instance this one downloads the bootstrap payload from S3
+# with the instance profile's credentials and installs it as system
+# configuration in /etc/cloud/cloud.cfg.d, which cloud-init re-reads after
+# the boothooks and before its init, config and final modules run (DESIGN.md
+# decision 1, CONVENTIONS.md section 13).
+set -eu
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+export PATH
+# --- CAPTF staging stub: canonical head (CONVENTIONS.md section 13) ---
+umask 077
+config=/etc/cloud/cloud.cfg.d/99-captf-bootstrap.cfg
+[ -s "$config" ] && exit 0
+mkdir -p /etc/cloud/cloud.cfg.d
+# Temporary names without .cfg: cloud-init reads only *.cfg there.
+fetched=$(mktemp /etc/cloud/cloud.cfg.d/.captf-fetched.XXXXXX)
+decoded=$(mktemp /etc/cloud/cloud.cfg.d/.captf-decoded.XXXXXX)
+trap 'rm -f "$fetched" "$decoded"' EXIT
+# --- cloud-specific: fetch the payload into "$fetched" ---
+attempt=1
+until aws s3 cp --only-show-errors --region '${region}' 's3://${bucket}/${key}' "$fetched"; do
+  if [ "$attempt" -ge 60 ]; then
+    echo "captf: giving up on s3://${bucket}/${key} after $attempt attempts" >&2
+    exit 1
+  fi
+  attempt=$((attempt + 1))
+  sleep 5
+done
+# --- CAPTF staging stub: canonical tail (CONVENTIONS.md section 13) ---
+# Decompress a gzip payload, accept only cloud-config (a "#cloud-config"
+# document, or a "## template: jinja" one, as CABPK writes, that renders
+# to cloud-config), and install it 0600 through a temporary file in the
+# same directory. A shell script or MIME payload is refused, not installed.
+if [ "$(od -An -tx1 -N2 "$fetched" | tr -d ' \n')" = 1f8b ]; then
+  gzip -dc "$fetched" >"$decoded"
+else
+  cat "$fetched" >"$decoded"
+fi
+captf_first=$(sed -n '1p' "$decoded" | tr -d '\r')
+captf_second=$(sed -n '2p' "$decoded" | tr -d '\r')
+case $captf_first in
+  '#cloud-config'*) ;;
+  '## template: jinja'*)
+    case $captf_second in
+      '#cloud-config'*) ;;
+      *)
+        echo "captf: the bootstrap payload is a Jinja template but not cloud-config; refusing it" >&2
+        exit 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "captf: the bootstrap payload is not cloud-config; refusing it" >&2
+    exit 1
+    ;;
+esac
+chmod 0600 "$decoded"
+mv "$decoded" "$config"
