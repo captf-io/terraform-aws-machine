@@ -32,16 +32,16 @@ The CAPTF AWS machine module is the Terraform/OpenTofu root module behind
 `TerraformMachine`. It is the `machine` role for AWS: one EC2 instance per
 Machine, control plane or worker. It implements the `v1alpha1`
 [machine role](https://captf.io/docs/module-author/contract/v1alpha1/machine.html).
-The images are built from
-[aws-modules](https://github.com/captf-io/aws-modules) and published as
-`ghcr.io/captf-io/aws-machine`; this repository holds the module code only.
+The images are built by
+[module-images](https://github.com/captf-io/module-images) from this repository's releases and published as
+`ghcr.io/captf-io/module-images/aws-machine`; this repository holds the module code only.
 
 Everything cluster-wide (subnets, security groups, instance profiles, the API
 target groups, the bootstrap bucket) comes from the cluster's exports.
 
 ## Using it
 
-CAPTF runs this module from the module image `ghcr.io/captf-io/aws-machine`: set
+CAPTF runs this module from the module image `ghcr.io/captf-io/module-images/aws-machine`: set
 the image on a `TerraformMachine`'s `spec.source.image` (through a
 `TerraformMachineTemplate`), and the controller renders every input. The module
 is also published to the Terraform Registry as `captf-io/machine/aws` and can be
@@ -250,7 +250,7 @@ spec:
   template:
     spec:
       source:
-        image: ghcr.io/captf-io/aws-machine:v0.1.0-opentofu
+        image: ghcr.io/captf-io/module-images/aws-machine:v0.1.0-opentofu
       variables:
         instance_type: m6i.large
 ```
